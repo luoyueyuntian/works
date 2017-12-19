@@ -15,7 +15,7 @@ loadModuleApi.js —— 将api列表解析成树形json数据
 parseModuleApi.js —— 根据json数据生成markdown文档
 
 ### bat脚本
-依次运行脚本文件，得到结构
+依次运行脚本文件，生成最终结果
 <pre><code>call phantomjs loadModuleUrl.js
 call node parseModuleName.js
 call phantomjs loadModuleApi.js
