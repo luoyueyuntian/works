@@ -8,7 +8,6 @@ fs 模块提供了一个 API，用于以接近标准 POSIX 函数的方式与文
 
 ![fs概览](../images/fs.png)
 
-
 ### nodejs读写文件的三种方式
 #### 一、readFile和writeFile
 1、readFile方法是将要读取的文件内容完整读入缓存区，再从该缓存区中读取文件内容，具体操作如下：
