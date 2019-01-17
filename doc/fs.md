@@ -13,7 +13,7 @@ fs 模块提供了一个 API，用于以接近标准 POSIX 函数的方式与文
 1、readFile方法是将要读取的文件内容完整读入缓存区，再从该缓存区中读取文件内容，具体操作如下：
 <pre><code>fs.readFile('./test.txt', 'utf8', function(err, data){
   console.log(data); 
-});	</code></pre>
+}); </code></pre>
 与其对应的同步方法为：
 <pre><code>var data = fs.readFileSync('./test.txt', 'utf8');
 console.log(data);
@@ -208,10 +208,14 @@ fs.watchFile
 包含编码后的斜杆字符（%2F）的 URL 在所有平台都将导致抛出错误。在 Windows 上，包含编码后的反斜杆字符（%5C）的 URL 将导致抛出错误。
 + 文件描述符:<br/>
 在 POSIX 系统上，对于每个进程，内核都维护一个当前打开的文件和资源的表格。 为每个打开的文件分配一个称为文件描述符的简单数字标识符。 在系统级，所有文件系统操作都使用这些文件描述符来标识和跟踪每个特定文件。 Windows 系统使用不同但概念上类似的机制来跟踪资源。 为了简化用户的工作，Node.js 抽象出操作系统之间的特定差异，并为所有打开的文件分配一个数字文件描述符。<br/>
-fs.open() 方法用于分配新的文件描述符。一旦被分配，文件描述符可用于从文件读取数据，向文件写入数据、或请求关于文件的信息。
+fs.open() 方法用于分配新的文件描述符。一旦被分配，文件描述符可用于从文件读取数据，向文件写入数据、或请求关于文件的信息。<br/>
+**注意事项：**<br/>
+1、任何指定的文件描述符都必须支持读取。<br/>
+2、如果将文件描述符指定为 path，则不会自动关闭。<br/>
+3、读数将从当前位置开始。例如，如果文件已经具有内容 'Hello World' 并且使用文件描述符读取了六个字节，则使用相同文件描述符调用 fs.readFile() 将返回 'World' 而不是 'Hello World'。
 
 #### 什么时候选择文件描述符作为操作文件的参数
-一般而言操作文件都需要先打开文件，生成文件描述符，然后再使用文件描述符来操作文件，操作完成后需要及时关闭文件，以释放占用的资源。这种直接对文件的操作属于底层操作，除了使用底层api，nodejs还提供了一些直接操作文件的api，使用这些api操作文件时不需要先open文件获取文件描述符，也不要要在操作完成后close文件（这些api也只是使用文件描述符来操作文件，当使用文件操作符时，文件不会自动关闭）。
+一般而言操作文件都需要先打开文件，生成文件描述符，然后再使用文件描述符来操作文件，操作完成后需要及时关闭文件，以释放占用的资源。这种直接对文件的操作属于底层操作，除了使用底层api，nodejs还提供了一些直接操作文件的api，使用这些api操作文件时不需要先open文件获取文件描述符，也不要要在操作完成后close文件（这些api也支持使用文件描述符来操作文件，当使用文件操作符时，文件不会自动关闭）。
 底层操作api有：
 + open(此时还没有文件描述符，参数仍未文件路径)
 + read 和 readSync
@@ -225,6 +229,81 @@ fs.open() 方法用于分配新的文件描述符。一旦被分配，文件描�
 + fchown 和 fchownSync
 + futimes 和 futimesSync
 
-可以看出，除了打开、读、写、关闭外，其他直接操作文件的api都是"f"开头，当然也可以看出一些以"l"开头的api只支持使用文件路径作为参数，不支持使用文件描述符作为参数,但是也有一些不是"l"开头的api也只支持使用文件路径作为参数
+可以看出，除了打开、读、写、关闭外，其他直接操作文件的api都是"f"开头，当然也可以看出一些以"l"开头的api只支持使用文件路径作为参数，不支持使用文件描述符作为参数，但是也有一些不是"l"开头的api也只支持使用文件路径作为参数。
 
 以上底层api再使用时只能使用文件描述符作为操作文件的参数。如果你需要对文件进行多种操作，那么也可以在使用同时支持两种风格的api中使用文件描述符，在所有的操作完成后再关闭文件。对于只支持文件路径的api，只能选择文件路径，而不能选择文件描述符作为参数。
+
+### 文件属性
+nodejs提供了3组api获取文件属性，分别是：
++ fs.stat(path[, options], callback) 和 fs.statSync(path[, options])
++ fs.fstat(fd[, options], callback) 和 fs.fstatSync(fd[, options])
++ fs.lstat(path[, options], callback) 和 fs.lstatSync(path[, options])
+
+正常情况下会返回一个 fs.Stats 对象，该对象中包含了文件所有属性和一些方法
+
+#### fs.Stats 类
+属性：
++ dev 包含该文件的设备的数字标识符
++ ino 文件系统特定的文件索引节点编号。
++ mode 描述文件类型和模式的位字段。
++ nlink 文件存在的硬链接数。
++ uid 拥有该文件的用户的数字用户标识符（POSIX）。
++ gid 拥有该文件的组的数字组标识符（POSIX）。
++ rdev 如果文件被视为特殊文件，则该值为数字设备标识符。
++ size 文件的大小（以字节为单位）。
++ blksize 用于 I/O 操作的文件系统块大小。
++ blocks 为此文件分配的块数。
++ atimeMs 表示上次访问此文件的时间戳，以 POSIX Epoch 以来的毫秒数表示。
++ mtimeMs 表示上次修改此文件的时间戳，以 POSIX Epoch 以来的毫秒数表示。
++ ctimeMs 表示上次更改文件状态的时间戳，以 POSIX Epoch 以来的毫秒数表示。
++ birthtimeMs 表示此文件创建时间的时间戳，以 POSIX Epoch 以来的毫秒数表示。
++ atime 表示上次访问此文件的时间戳。
++ mtime 表示上次修改此文件的时间戳。
++ ctime 表示上次更改文件状态的时间戳。
++ birthtime 表示此文件创建时间的时间戳。
+
+方法：
++ isBlockDevice() 如果 fs.Stats 对象描述块设备，则返回 true。
++ isCharacterDevice() 如果 fs.Stats 对象描述字符设备，则返回 true。
++ isDirectory() 如果 fs.Stats 对象描述文件系统目录，则返回 true。
++ isFIFO() 如果 fs.Stats 对象描述先进先出（FIFO）管道，则返回 true。
++ isFile() 如果 fs.Stats 对象描述常规文件，则返回 true。
++ isSocket() 如果 fs.Stats 对象描述套接字，则返回 true。
++ isSymbolicLink() 如果 fs.Stats 对象描述符号链接，则返回 true。
+
+#### 文件属性的时间值
+atimeMs、mtimeMs、ctimeMs 以及 birthtimeMs 属性是是保存相应时间（以毫秒为单位）的数字。 它们的精确度取决于平台。 atime、mtime、ctime 以及 birthtime 是对应时间的 Date 对象。 Date 值和数字值没有关联性。 对数字值重新赋值、或者改变 Date 值，都不会影响到对应的属性。
+
+stat 对象中的时间具有以下语义：
++ atime "访问时间" - 上次访问文件数据的时间。由 mknod(2)、 utimes(2) 和 read(2) 系统调用更改。
++ mtime "修改时间" - 上次修改文件数据的时间。由 mknod(2)、 utimes(2) 和 write(2) 系统调用更改。
++ ctime "变化时间" - 上次更改文件状态的时间（修改索引节点数据）。由 chmod(2)、 chown(2)、 link(2)、 mknod(2)、 rename(2)、 unlink(2)、 utimes(2)、 read(2) 和 write(2) 系统调用更改。
++ birthtime "创建时间" - 文件创建的时间。 创建文件时设置一次。 在不支持创建时间的文件系统上，该字段可能被替代为 ctime 或 1970-01-01T00:00Z（如 Unix 纪元时间戳 0）。 在这种情况下，该值可能大于 atime 或 mtime。 在 Darwin 和其他的 FreeBSD 衍生系统上，如果使用 utimes(2) 系统调用将 atime 显式地设置为比 birthtime 更早的值，也会有这种情况。
+
+#### 文件类型
+| 类型 | 说明 |
+| ------ | ------ |
+| S_IFMT | 用于提取文件类型代码的位掩码。 |
+| S_IFREG | 表示常规文件。 |
+| S_IFDIR | 表示目录。 |
+| S_IFCHR | 表示面向字符的设备文件。 |
+| S_IFBLK | 表示面向块的设备文件。 |
+| S_IFIFO | 表示 FIFO 或管道。 |
+| S_IFLNK | 表示符号链接。 |
+| S_IFSOCK | 表示套接字。 |
+
+#### 文件模式
+| 模式 | 说明 |
+| ------ | ------ |
+| S_IRWXU | 表明所有者可读、可写、可执行。 |
+| S_IRUSR | 表明所有者可读。 |
+| S_IWUSR | 表明所有者可写。 |
+| S_IXUSR | 表明所有者可执行。 |
+| S_IRWXG | 表明群组可读、可写、可执行。 |
+| S_IRGRP | 表明群组可读。 |
+| S_IWGRP | 表明群组可写。 |
+| S_IXGRP | 表明群组可执行。 |
+| S_IRWXO | 表明其他人可读、可写、可执行。 |
+| S_IROTH | 表明其他人可读。 |
+| S_IWOTH | 表明其他人可写。 |
+| S_IXOTH | 表明其他人可执行。 |
