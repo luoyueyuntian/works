@@ -271,6 +271,34 @@ nodejs提供了3组api获取文件属性，分别是：
 + isSocket() 如果 fs.Stats 对象描述套接字，则返回 true。
 + isSymbolicLink() 如果 fs.Stats 对象描述符号链接，则返回 true。
 
+#### 文件类型
+| 类型 | 说明 |
+| ------ | ------ |
+| fs.constants.S_IFMT | 用于提取文件类型代码的位掩码。 |
+| fs.constants.S_IFREG | 表示常规文件。 |
+| fs.constants.S_IFDIR | 表示目录。 |
+| fs.constants.S_IFCHR | 表示面向字符的设备文件。 |
+| fs.constants.S_IFBLK | 表示面向块的设备文件。 |
+| fs.constants.S_IFIFO | 表示 FIFO 或管道。 |
+| fs.constants.S_IFLNK | 表示符号链接。 |
+| fs.constants.S_IFSOCK | 表示套接字。 |
+
+#### 文件模式
+| 模式 | 说明 |
+| ------ | ------ |
+| fs.constants.S_IRWXU | 表明所有者可读、可写、可执行。 |
+| fs.constants.S_IRUSR | 表明所有者可读。 |
+| fs.constants.S_IWUSR | 表明所有者可写。 |
+| fs.constants.S_IXUSR | 表明所有者可执行。 |
+| fs.constants.S_IRWXG | 表明群组可读、可写、可执行。 |
+| fs.constants.S_IRGRP | 表明群组可读。 |
+| fs.constants.S_IWGRP | 表明群组可写。 |
+| fs.constants.S_IXGRP | 表明群组可执行。 |
+| fs.constants.S_IRWXO | 表明其他人可读、可写、可执行。 |
+| fs.constants.S_IROTH | 表明其他人可读。 |
+| fs.constants.S_IWOTH | 表明其他人可写。 |
+| fs.constants.S_IXOTH | 表明其他人可执行。 |
+
 #### 文件属性的时间值
 atimeMs、mtimeMs、ctimeMs 以及 birthtimeMs 属性是是保存相应时间（以毫秒为单位）的数字。 它们的精确度取决于平台。 atime、mtime、ctime 以及 birthtime 是对应时间的 Date 对象。 Date 值和数字值没有关联性。 对数字值重新赋值、或者改变 Date 值，都不会影响到对应的属性。
 
@@ -280,30 +308,12 @@ stat 对象中的时间具有以下语义：
 + ctime "变化时间" - 上次更改文件状态的时间（修改索引节点数据）。由 chmod(2)、 chown(2)、 link(2)、 mknod(2)、 rename(2)、 unlink(2)、 utimes(2)、 read(2) 和 write(2) 系统调用更改。
 + birthtime "创建时间" - 文件创建的时间。 创建文件时设置一次。 在不支持创建时间的文件系统上，该字段可能被替代为 ctime 或 1970-01-01T00:00Z（如 Unix 纪元时间戳 0）。 在这种情况下，该值可能大于 atime 或 mtime。 在 Darwin 和其他的 FreeBSD 衍生系统上，如果使用 utimes(2) 系统调用将 atime 显式地设置为比 birthtime 更早的值，也会有这种情况。
 
-#### 文件类型
-| 类型 | 说明 |
-| ------ | ------ |
-| S_IFMT | 用于提取文件类型代码的位掩码。 |
-| S_IFREG | 表示常规文件。 |
-| S_IFDIR | 表示目录。 |
-| S_IFCHR | 表示面向字符的设备文件。 |
-| S_IFBLK | 表示面向块的设备文件。 |
-| S_IFIFO | 表示 FIFO 或管道。 |
-| S_IFLNK | 表示符号链接。 |
-| S_IFSOCK | 表示套接字。 |
+#### 修改文件系统时间戳
+nodejs提供了两组方法直接设置文件访问时间和修改时间
+<pre><code>fs.futimes(fd, atime, mtime, callback) 和 fs.futimesSync(fd, atime, mtime)
+fs.utimes(path, atime, mtime, callback) 和 fs.utimesSync(path, atime, mtime)</code></pre>
+**atime 和 mtime 参数遵循以下规则：**
++ 值可以是表示 Unix 纪元时间的数字、Date 对象、或类似 '123456789.0' 的数值字符串。Unix 纪元时间的数字要使用秒数而不是毫秒数
++ 如果该值无法转换为数值、或值为 NaN、Infinity 或 -Infinity，则抛出错误。
 
-#### 文件模式
-| 模式 | 说明 |
-| ------ | ------ |
-| S_IRWXU | 表明所有者可读、可写、可执行。 |
-| S_IRUSR | 表明所有者可读。 |
-| S_IWUSR | 表明所有者可写。 |
-| S_IXUSR | 表明所有者可执行。 |
-| S_IRWXG | 表明群组可读、可写、可执行。 |
-| S_IRGRP | 表明群组可读。 |
-| S_IWGRP | 表明群组可写。 |
-| S_IXGRP | 表明群组可执行。 |
-| S_IRWXO | 表明其他人可读、可写、可执行。 |
-| S_IROTH | 表明其他人可读。 |
-| S_IWOTH | 表明其他人可写。 |
-| S_IXOTH | 表明其他人可执行。 |
+以上两个方法可以同时修改对应属性的两种格式的属性值
