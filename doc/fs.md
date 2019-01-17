@@ -350,10 +350,12 @@ nodejs提供了三组更改文件权限的api，主要区别在于指定文件�
 | 1 | 只可执行 |
 | 0 | 没有权限 |
 
-**注意事项：** 在 Windows 上，只能更改写入权限，并且不会实现群组、所有者或其他人的权限之间的区别。
+**注意事项：** 在 Windows 上，只能更改写入权限，并且不会实现群组、所有者或其他人的权限之间的区别。fs.chmod的第一个参数如果是一个符号链接时，操作会作用到符号链接的目标文件而不是符号本身，fs.lchmod不解析符号链接。
 
 ### 更改文件的所有者和群组
 nodejs提供了三组更改文件的所有者和群组的api，主要区别在于指定文件时使用的参数，注意当使用文件描述符作为参数时，文件不会自动关闭。其中path和fd用来指定文件，uid, gid分别指用户ID和群组ID，回调函数除了可能的异常，没有其他参数。
 + fs.chown(path, uid, gid, callback) 和 fs.chownSync(path, uid, gid)
 + fs.fchown(fd, uid, gid, callback) 和 fs.fchownSync(fd, uid, gid)
 + fs.lchown(path, uid, gid, callback) 和 fs.lchownSync(path, uid, gid)
+
+注意：如果fs.chown的第一个参数是一个符号链接，则会接触符号链接。fs.lchown不解析符号链接。
