@@ -317,3 +317,43 @@ fs.utimes(path, atime, mtime, callback) 和 fs.utimesSync(path, atime, mtime)</c
 + 如果该值无法转换为数值、或值为 NaN、Infinity 或 -Infinity，则抛出错误。
 
 以上两个方法可以同时修改对应属性的两种格式的属性值
+
+### 更改文件权限
+nodejs提供了三组更改文件权限的api，主要区别在于指定文件时使用的参数，注意当使用文件描述符作为参数时，文件不会自动关闭。其中path和fd用来指定文件，mode指文件模式，回调函数除了可能的异常，没有其他参数。
++ fs.chmod(path, mode, callback) 和 fs.chmodSync(path, mode)
++ fs.fchmod(fd, mode, callback) 和 fs.fchmodSync(fd, mode)
++ fs.lchmod(path, mode, callback) 和 fs.lchmodSync(path, mode)
+
+#### 文件的模式——mode
+方法中使用的 mode 参数是使用以下常量的逻辑或运算创建的数字型位掩码：
+| 常量 | 八进制值 | 说明 |
+| ------ | ------ | ------ |
+| fs.constants.S_IRUSR | 0o400 | 所有者可读 |
+| fs.constants.S_IWUSR | 0o200 | 所有者可写 |
+| fs.constants.S_IXUSR | 0o100 | 所有者可执行或搜索 |
+| fs.constants.S_IRGRP | 0o40 | 群组可读 |
+| fs.constants.S_IWGRP | 0o20 | 群组可写 |
+| fs.constants.S_IXGRP | 0o10 | 群组可执行或搜索 |
+| fs.constants.S_IROTH | 0o4 | 其他人可读 |
+| fs.constants.S_IWOTH | 0o2 | 其他人可写 |
+| fs.constants.S_IXOTH | 0o1 | 其他人可执行或搜索 |
+
+构造 mode 更简单的方法是使用三个八进制数字的序列（ 例如 765）。 最左边的数字（示例中的 7）指定文件所有者的权限。 中间的数字（示例中的 6）指定群组的权限。 最右边的数字（示例中的 5）指定其他人的权限
+| 数字 | 说明 |
+| ------ | ------ |
+| 7 | 可读、可写、可执行 |
+| 6 | 可读、可写 |
+| 5 | 可读、可执行 |
+| 4 | 只读 |
+| 3 | 可写、可执行 |
+| 2 | 只写 |
+| 1 | 只可执行 |
+| 0 | 没有权限 |
+
+**注意事项：** 在 Windows 上，只能更改写入权限，并且不会实现群组、所有者或其他人的权限之间的区别。
+
+### 更改文件的所有者和群组
+nodejs提供了三组更改文件的所有者和群组的api，主要区别在于指定文件时使用的参数，注意当使用文件描述符作为参数时，文件不会自动关闭。其中path和fd用来指定文件，uid, gid分别指用户ID和群组ID，回调函数除了可能的异常，没有其他参数。
++ fs.chown(path, uid, gid, callback) 和 fs.chownSync(path, uid, gid)
++ fs.fchown(fd, uid, gid, callback) 和 fs.fchownSync(fd, uid, gid)
++ fs.lchown(path, uid, gid, callback) 和 fs.lchownSync(path, uid, gid)
