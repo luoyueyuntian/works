@@ -49,7 +49,7 @@ POSIX 上路径结构如下：
 #### 判定 path 是否为一个绝对路径
 <pre><code>path.isAbsolute(path)</code></pre>
 
-###3 获取绝对路径
+#### 获取绝对路径
 <pre><code>path.resolve([...paths])</code></pre>
 把一个路径或路径片段的序列解析为一个绝对路径。
 
@@ -73,13 +73,13 @@ POSIX 上路径结构如下：
 #3## path.join([...paths])
 使用平台特定的分隔符把全部给定的 path 片段连接到一起，并规范化生成的路径。
 
-#3## path.normalize(path)
+#### path.normalize(path)
 该方法会规范化给定的 path，并解析 '..' 和 '.' 片段。
 
 + 当发现多个连续的路径分隔符时（如 POSIX 上的 / 与 Windows 上的 \ 或 /），它们会被单个的路径分隔符（POSIX 上是 /，Windows 上是 \）替换。 末尾的多个分隔符会被保留。
 + 如果 path 是一个长度为零的字符串，则返回 '.'，表示当前工作目录。
 
-#3# 路径字符串与路径对象相互转换
+### 路径字符串与路径对象相互转换
 #### 路径字符串转路径对象
 <pre><code>path.parse(path)</code></pre>
 路径对象有以下属性：
